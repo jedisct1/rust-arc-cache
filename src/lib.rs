@@ -25,8 +25,7 @@ impl<K, V> ArcCache<K, V> where K: Eq+Hash {
         }
     }
 
-    pub fn contains_key<Q: ?Sized>(&mut self, key: &Q) -> bool where K: Borrow<Q>,
-              Q: Hash + Eq {
+    pub fn contains_key<Q: ?Sized>(&mut self, key: &Q) -> bool where K: Borrow<Q>, Q: Hash + Eq {
         return self.recent_set.contains_key(key) || self.frequent_set.contains_key(key)
     }
 
