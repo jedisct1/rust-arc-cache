@@ -1,7 +1,10 @@
 [package]
-name = "arc-cache"
-version = "0.1.0"
 authors = ["Frank Denis <github@pureftpd.org>"]
+keywords = ["data-structures"]
+license = "MIT/Apache-2.0"
+name = "arc-cache"
+repository = "https://github.com/jedisct1/arc-cache"
+version = "0.1.0"
 
 [dependencies.lru-cache]
 git = "https://github.com/jedisct1/lru-cache.git"
