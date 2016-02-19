@@ -92,7 +92,7 @@ impl<K, V> ArcCache<K, V> where K: Eq+Hash {
         false
     }
 
-    pub fn peek_mut<Q: ?Sized>(&mut self, key: &K) -> Option<&mut V> {
+    pub fn peek_mut(&mut self, key: &K) -> Option<&mut V> where K: Clone + Hash + Eq {
         if let Some(entry) = self.recent_set.peek_mut(key) {
             Some(entry)
         } else {
@@ -100,11 +100,11 @@ impl<K, V> ArcCache<K, V> where K: Eq+Hash {
         }
     }
 
-    pub fn get_mut<Q: ?Sized>(&mut self, key: K) -> Option<&mut V> where K: Clone {
+    pub fn get_mut(&mut self, key: &K) -> Option<&mut V> where K: Clone + Hash + Eq {
         if let Some(value) = self.recent_set.remove(&key) {
-            self.frequent_set.insert(key.clone(), value);
+            self.frequent_set.insert((*key).clone(), value);
         }
-        self.frequent_set.get_mut(&key)
+        self.frequent_set.get_mut(key)
     }
 
     fn replace(&mut self, frequent_evicted_contains_key: bool) {
@@ -132,4 +132,7 @@ fn test_arc() {
     assert!(arc.contains_key(&"testkey3"));
     assert!(arc.contains_key(&"testkey2"));
     assert!(!arc.contains_key(&"testkey"));
+    arc.insert("testkey", "testvalue");
+    assert!(arc.get_mut(&"testkey").is_some());
+    assert!(arc.get_mut(&"testkey-nx").is_none());
 }
