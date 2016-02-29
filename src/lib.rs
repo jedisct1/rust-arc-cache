@@ -119,6 +119,18 @@ impl<K, V> ArcCache<K, V> where K: Eq+Hash {
             }
         }
     }
+
+    pub fn len(&self) -> usize {
+        self.recent_set.len() + self.frequent_set.len()
+    }
+
+    pub fn frequent_len(&self) -> usize {
+        self.frequent_set.len()
+    }
+
+    pub fn recent_len(&self) -> usize {
+        self.recent_set.len()
+    }
 }
 
 #[test]
