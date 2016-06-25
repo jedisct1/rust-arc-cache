@@ -26,16 +26,36 @@ impl<K, V> ArcCache<K, V> where K: Eq+Hash {
     }
 
     pub fn contains_key<Q: ?Sized>(&mut self, key: &Q) -> bool where K: Borrow<Q>, Q: Hash + Eq {
-        self.recent_set.contains_key(key) || self.frequent_set.contains_key(key)
+        self.frequent_set.contains_key(key) || self.recent_set.contains_key(key)
     }
 
     pub fn insert(&mut self, key: K, value: V) -> bool {
+        if self.frequent_set.contains_key(&key) {
+            self.frequent_set.insert(key, value);
+            return true;
+        }
         if self.recent_set.contains_key(&key) {
             self.recent_set.remove(&key);
             self.frequent_set.insert(key, value);
             return true
         }
-        if self.frequent_set.contains_key(&key) {
+        if self.frequent_evicted.contains_key(&key) {
+            let recent_evicted_len = self.recent_evicted.len();
+            let frequent_evicted_len = self.frequent_evicted.len();
+            let delta = if recent_evicted_len > frequent_evicted_len {
+                recent_evicted_len / frequent_evicted_len
+            } else {
+                1
+            };
+            if delta > self.p {
+                self.p -= delta;
+            } else {
+                self.p = 0
+            }
+            if self.recent_set.len() + self.frequent_set.len() >= self.capacity {
+                self.replace(true);
+            }
+            self.frequent_evicted.remove(&key);
             self.frequent_set.insert(key, value);
             return true;
         }
@@ -59,26 +79,6 @@ impl<K, V> ArcCache<K, V> where K: Eq+Hash {
             self.frequent_set.insert(key, value);
             return true;
         }
-        if self.frequent_evicted.contains_key(&key) {
-            let recent_evicted_len = self.recent_evicted.len();
-            let frequent_evicted_len = self.frequent_evicted.len();
-            let delta = if recent_evicted_len > frequent_evicted_len {
-                recent_evicted_len / frequent_evicted_len
-            } else {
-                1
-            };
-            if delta > self.p {
-                self.p -= delta;
-            } else {
-                self.p = 0
-            }
-            if self.recent_set.len() + self.frequent_set.len() >= self.capacity {
-                self.replace(true);
-            }
-            self.frequent_evicted.remove(&key);
-            self.frequent_set.insert(key, value);
-            return true;
-        }
         if self.recent_set.len() + self.frequent_set.len() >= self.capacity {
             self.replace(false);
         }
@@ -93,10 +93,10 @@ impl<K, V> ArcCache<K, V> where K: Eq+Hash {
     }
 
     pub fn peek_mut(&mut self, key: &K) -> Option<&mut V> where K: Clone + Hash + Eq {
-        if let Some(entry) = self.recent_set.peek_mut(key) {
+        if let Some(entry) = self.frequent_set.peek_mut(key) {
             Some(entry)
         } else {
-            self.frequent_set.peek_mut(key)
+            self.recent_set.peek_mut(key)
         }
     }
 
