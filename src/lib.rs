@@ -4,16 +4,20 @@ use std::borrow::Borrow;
 use std::hash::Hash;
 use lru_cache::LruCache;
 
-pub struct ArcCache<K, V> where K: Eq+Hash {
+pub struct ArcCache<K, V>
+    where K: Eq + Hash
+{
     recent_set: LruCache<K, V>,
     recent_evicted: LruCache<K, ()>,
     frequent_set: LruCache<K, V>,
     frequent_evicted: LruCache<K, ()>,
     capacity: usize,
-    p: usize
+    p: usize,
 }
 
-impl<K, V> ArcCache<K, V> where K: Eq+Hash {
+impl<K, V> ArcCache<K, V>
+    where K: Eq + Hash
+{
     pub fn new(capacity: usize) -> ArcCache<K, V> {
         ArcCache {
             recent_set: LruCache::new(capacity),
@@ -21,11 +25,14 @@ impl<K, V> ArcCache<K, V> where K: Eq+Hash {
             frequent_set: LruCache::new(capacity),
             frequent_evicted: LruCache::new(capacity),
             capacity: capacity,
-            p: 0
+            p: 0,
         }
     }
 
-    pub fn contains_key<Q: ?Sized>(&mut self, key: &Q) -> bool where K: Borrow<Q>, Q: Hash + Eq {
+    pub fn contains_key<Q: ?Sized>(&mut self, key: &Q) -> bool
+        where K: Borrow<Q>,
+              Q: Hash + Eq
+    {
         self.frequent_set.contains_key(key) || self.recent_set.contains_key(key)
     }
 
@@ -37,7 +44,7 @@ impl<K, V> ArcCache<K, V> where K: Eq+Hash {
         if self.recent_set.contains_key(&key) {
             self.recent_set.remove(&key);
             self.frequent_set.insert(key, value);
-            return true
+            return true;
         }
         if self.frequent_evicted.contains_key(&key) {
             let recent_evicted_len = self.recent_evicted.len();
@@ -92,7 +99,9 @@ impl<K, V> ArcCache<K, V> where K: Eq+Hash {
         false
     }
 
-    pub fn peek_mut(&mut self, key: &K) -> Option<&mut V> where K: Clone + Hash + Eq {
+    pub fn peek_mut(&mut self, key: &K) -> Option<&mut V>
+        where K: Clone + Hash + Eq
+    {
         if let Some(entry) = self.frequent_set.peek_mut(key) {
             Some(entry)
         } else {
@@ -100,7 +109,9 @@ impl<K, V> ArcCache<K, V> where K: Eq+Hash {
         }
     }
 
-    pub fn get_mut(&mut self, key: &K) -> Option<&mut V> where K: Clone + Hash + Eq {
+    pub fn get_mut(&mut self, key: &K) -> Option<&mut V>
+        where K: Clone + Hash + Eq
+    {
         if let Some(value) = self.recent_set.remove(&key) {
             self.frequent_set.insert((*key).clone(), value);
         }
@@ -109,7 +120,9 @@ impl<K, V> ArcCache<K, V> where K: Eq+Hash {
 
     fn replace(&mut self, frequent_evicted_contains_key: bool) {
         let recent_set_len = self.recent_set.len();
-        if recent_set_len > 0 && (recent_set_len > self.p || (recent_set_len == self.p && frequent_evicted_contains_key)) {
+        if recent_set_len > 0 &&
+           (recent_set_len > self.p ||
+            (recent_set_len == self.p && frequent_evicted_contains_key)) {
             if let Some((old_key, _)) = self.recent_set.remove_lru() {
                 self.recent_evicted.insert(old_key, ());
             }
@@ -135,7 +148,7 @@ impl<K, V> ArcCache<K, V> where K: Eq+Hash {
 
 #[test]
 fn test_arc() {
-    let mut arc: ArcCache<&str,&str> = ArcCache::new(2);
+    let mut arc: ArcCache<&str, &str> = ArcCache::new(2);
     arc.insert("testkey", "testvalue");
     assert!(arc.contains_key(&"testkey"));
     arc.insert("testkey2", "testvalue2");
