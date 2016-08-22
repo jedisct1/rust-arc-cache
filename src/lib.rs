@@ -106,10 +106,10 @@ impl<K, V> ArcCache<K, V>
     pub fn peek_mut(&mut self, key: &K) -> Option<&mut V>
         where K: Clone + Hash + Eq
     {
-        if let Some(entry) = self.frequent_set.peek_mut(key) {
+        if let Some(entry) = self.recent_set.peek_mut(key) {
             Some(entry)
         } else {
-            self.recent_set.peek_mut(key)
+            self.frequent_set.peek_mut(key)
         }
     }
 
