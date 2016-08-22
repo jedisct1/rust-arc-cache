@@ -4,6 +4,8 @@ use std::borrow::Borrow;
 use std::hash::Hash;
 use lru_cache::LruCache;
 
+const PROMOTION_DELAY: u32 = 100;
+
 pub struct ArcCache<K, V>
     where K: Eq + Hash
 {
@@ -13,6 +15,7 @@ pub struct ArcCache<K, V>
     frequent_evicted: LruCache<K, ()>,
     capacity: usize,
     p: usize,
+    seq: u32,
 }
 
 impl<K, V> ArcCache<K, V>
@@ -26,6 +29,7 @@ impl<K, V> ArcCache<K, V>
             frequent_evicted: LruCache::new(capacity),
             capacity: capacity,
             p: 0,
+            seq: PROMOTION_DELAY,
         }
     }
 
@@ -112,10 +116,16 @@ impl<K, V> ArcCache<K, V>
     pub fn get_mut(&mut self, key: &K) -> Option<&mut V>
         where K: Clone + Hash + Eq
     {
-        if let Some(value) = self.recent_set.remove(&key) {
-            self.frequent_set.insert((*key).clone(), value);
+        self.seq -= 1;
+        if self.seq > 0 {
+            self.peek_mut(key)
+        } else {
+            self.seq = PROMOTION_DELAY;
+            if let Some(value) = self.recent_set.remove(&key) {
+                self.frequent_set.insert((*key).clone(), value);
+            }
+            self.frequent_set.get_mut(key)
         }
-        self.frequent_set.get_mut(key)
     }
 
     fn replace(&mut self, frequent_evicted_contains_key: bool) {
