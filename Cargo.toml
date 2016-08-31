@@ -4,7 +4,7 @@ keywords = ["data-structures"]
 license = "MIT/Apache-2.0"
 name = "arc-cache"
 repository = "https://github.com/jedisct1/arc-cache"
-version = "0.1.0"
+version = "0.2.0"
 
 [dependencies.lru-cache]
 git = "https://github.com/jedisct1/lru-cache.git"
