@@ -21,8 +21,11 @@ pub struct ArcCache<K, V>
 impl<K, V> ArcCache<K, V>
     where K: Eq + Hash
 {
-    pub fn new(capacity: usize) -> ArcCache<K, V> {
-        ArcCache {
+    pub fn new(capacity: usize) -> Result<ArcCache<K, V>, &'static str> {
+        if capacity <= 0 {
+            return Err("Cache length cannot be zero");
+        }
+        let cache = ArcCache {
             recent_set: LruCache::new(capacity),
             recent_evicted: LruCache::new(capacity),
             frequent_set: LruCache::new(capacity),
@@ -30,7 +33,8 @@ impl<K, V> ArcCache<K, V>
             capacity: capacity,
             p: 0,
             seq: PROMOTION_DELAY,
-        }
+        };
+        Ok(cache)
     }
 
     pub fn contains_key<Q: ?Sized>(&mut self, key: &Q) -> bool
