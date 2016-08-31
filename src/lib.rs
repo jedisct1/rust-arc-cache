@@ -54,7 +54,7 @@ impl<K, V> ArcCache<K, V>
             } else {
                 1
             };
-            if delta > self.p {
+            if delta < self.p {
                 self.p -= delta;
             } else {
                 self.p = 0
