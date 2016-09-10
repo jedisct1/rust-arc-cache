@@ -13,6 +13,8 @@ pub struct ArcCache<K, V>
     frequent_evicted: LruCache<K, ()>,
     capacity: usize,
     p: usize,
+    inserted: u64,
+    evicted: u64,
 }
 
 impl<K, V> ArcCache<K, V>
@@ -29,6 +31,8 @@ impl<K, V> ArcCache<K, V>
             frequent_evicted: LruCache::new(capacity),
             capacity: capacity,
             p: 0,
+            inserted: 0,
+            evicted: 0,
         };
         Ok(cache)
     }
@@ -95,11 +99,14 @@ impl<K, V> ArcCache<K, V>
         }
         if self.recent_evicted.len() > self.capacity - self.p {
             self.recent_evicted.remove_lru();
+            self.evicted += 1;
         }
         if self.frequent_evicted.len() > self.p {
             self.frequent_evicted.remove_lru();
+            self.evicted += 1;
         }
         self.recent_set.insert(key, value);
+        self.inserted += 1;
         false
     }
 
@@ -147,6 +154,14 @@ impl<K, V> ArcCache<K, V>
 
     pub fn recent_len(&self) -> usize {
         self.recent_set.len()
+    }
+
+    pub fn inserted(&self) -> u64 {
+        self.inserted
+    }
+
+    pub fn evicted(&self) -> u64 {
+        self.evicted
     }
 }
 
