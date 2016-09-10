@@ -167,7 +167,7 @@ impl<K, V> ArcCache<K, V>
 
 #[test]
 fn test_arc() {
-    let mut arc: ArcCache<&str, &str> = ArcCache::new(2);
+    let mut arc: ArcCache<&str, &str> = ArcCache::new(2).unwrap();
     arc.insert("testkey", "testvalue");
     assert!(arc.contains_key(&"testkey"));
     arc.insert("testkey2", "testvalue2");
