@@ -5,7 +5,8 @@ use std::hash::Hash;
 use lru_cache::LruCache;
 
 pub struct ArcCache<K, V>
-    where K: Eq + Hash
+where
+    K: Eq + Hash,
 {
     recent_set: LruCache<K, V>,
     recent_evicted: LruCache<K, ()>,
@@ -18,7 +19,8 @@ pub struct ArcCache<K, V>
 }
 
 impl<K, V> ArcCache<K, V>
-    where K: Eq + Hash
+where
+    K: Eq + Hash,
 {
     pub fn new(capacity: usize) -> Result<ArcCache<K, V>, &'static str> {
         if capacity <= 0 {
@@ -38,8 +40,9 @@ impl<K, V> ArcCache<K, V>
     }
 
     pub fn contains_key<Q: ?Sized>(&mut self, key: &Q) -> bool
-        where K: Borrow<Q>,
-              Q: Hash + Eq
+    where
+        K: Borrow<Q>,
+        Q: Hash + Eq,
     {
         self.frequent_set.contains_key(key) || self.recent_set.contains_key(key)
     }
@@ -111,7 +114,8 @@ impl<K, V> ArcCache<K, V>
     }
 
     pub fn peek_mut(&mut self, key: &K) -> Option<&mut V>
-        where K: Clone + Hash + Eq
+    where
+        K: Clone + Hash + Eq,
     {
         if let Some(entry) = self.frequent_set.peek_mut(key) {
             Some(entry)
@@ -121,7 +125,8 @@ impl<K, V> ArcCache<K, V>
     }
 
     pub fn get_mut(&mut self, key: &K) -> Option<&mut V>
-        where K: Clone + Hash + Eq
+    where
+        K: Clone + Hash + Eq,
     {
         if let Some(value) = self.recent_set.remove(&key) {
             self.frequent_set.insert((*key).clone(), value);
