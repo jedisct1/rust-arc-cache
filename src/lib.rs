@@ -136,8 +136,9 @@ where
 
     fn replace(&mut self, frequent_evicted_contains_key: bool) {
         let recent_set_len = self.recent_set.len();
-        if recent_set_len > 0 &&
-            (recent_set_len > self.p || (recent_set_len == self.p && frequent_evicted_contains_key))
+        if recent_set_len > 0
+            && (recent_set_len > self.p
+                || (recent_set_len == self.p && frequent_evicted_contains_key))
         {
             if let Some((old_key, _)) = self.recent_set.remove_lru() {
                 self.recent_evicted.insert(old_key, ());
