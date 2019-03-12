@@ -1,5 +1,3 @@
-extern crate lru_cache;
-
 use lru_cache::LruCache;
 use std::borrow::Borrow;
 use std::hash::Hash;
