@@ -8,9 +8,9 @@ version = "0.2.1"
 categories = ["algorithms", "caching", "memory-management"]
 edition = "2018"
 
+[dependencies]
+xlru-cache = "0.1"
+
 [badges]
 travis-ci = { repository = "jedisct1/rust-arc-cache" }
 appveyor  = { repository = "jedisct1/rust-arc-cache" }
-
-[dependencies.lru-cache]
-git = "https://github.com/jedisct1/lru-cache.git"

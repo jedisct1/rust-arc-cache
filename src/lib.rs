@@ -1,4 +1,4 @@
-use lru_cache::LruCache;
+use xlru_cache::LruCache;
 use std::borrow::Borrow;
 use std::hash::Hash;
 
