@@ -1,10 +1,11 @@
 [package]
 authors = ["Frank Denis <github@pureftpd.org>"]
+description = "An Adaptative Replacement Cache for Rust."
 keywords = ["data-structures"]
 license = "MIT/Apache-2.0"
 name = "arc-cache"
 repository = "https://github.com/jedisct1/rust-arc-cache"
-version = "0.2.1"
+version = "0.2.2"
 categories = ["algorithms", "caching", "memory-management"]
 edition = "2018"
 
