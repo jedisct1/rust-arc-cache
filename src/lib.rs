@@ -14,6 +14,7 @@ where
     p: usize,
     inserted: u64,
     evicted: u64,
+    removed: u64,
 }
 
 impl<K, V> ArcCache<K, V>
@@ -33,6 +34,7 @@ where
             p: 0,
             inserted: 0,
             evicted: 0,
+            removed: 0,
         };
         Ok(cache)
     }
@@ -132,6 +134,22 @@ where
         self.frequent_set.get_mut(key)
     }
 
+    pub fn remove(&mut self, key: &K) -> Option<V> {
+        let removed_frequent = self.frequent_set.remove(&key);
+        let removed_recent = self.recent_set.remove(&key);
+
+        self.frequent_evicted.remove(&key);
+        self.recent_evicted.remove(&key);
+
+        match removed_frequent.or(removed_recent) {
+            Some(value) => {
+                self.removed += 1;
+                Some(value)
+            },
+            None => None
+        }
+    }
+
     fn replace(&mut self, frequent_evicted_contains_key: bool) {
         let recent_set_len = self.recent_set.len();
         if recent_set_len > 0
@@ -166,6 +184,10 @@ where
 
     pub fn evicted(&self) -> u64 {
         self.evicted
+    }
+
+    pub fn removed(&self) -> u64 {
+        self.removed
     }
 }
 
