@@ -132,6 +132,16 @@ where
         self.frequent_set.get_mut(key)
     }
 
+    pub fn remove(&mut self, key: &K) -> Option<V> {
+        let removed_frequent = self.frequent_set.remove(&key);
+        let removed_recent = self.recent_set.remove(&key);
+
+        self.frequent_evicted.remove(&key);
+        self.recent_evicted.remove(&key);
+
+        removed_frequent.or(removed_recent)
+    }
+
     fn replace(&mut self, frequent_evicted_contains_key: bool) {
         let recent_set_len = self.recent_set.len();
         if recent_set_len > 0
