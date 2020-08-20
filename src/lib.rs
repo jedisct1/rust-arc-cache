@@ -1,6 +1,6 @@
-use xlru_cache::LruCache;
 use std::borrow::Borrow;
 use std::hash::Hash;
+use xlru_cache::LruCache;
 
 pub struct ArcCache<K, V>
 where
@@ -145,8 +145,8 @@ where
             Some(value) => {
                 self.removed += 1;
                 Some(value)
-            },
-            None => None
+            }
+            None => None,
         }
     }
 
@@ -167,7 +167,6 @@ where
     }
 
     pub fn clear(&mut self) {
-        // go through and call clear on everything
         self.recent_set.clear();
         self.recent_evicted.clear();
         self.frequent_set.clear();
