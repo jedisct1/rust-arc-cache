@@ -166,6 +166,14 @@ where
         }
     }
 
+    pub fn clear(&mut self) {
+        // go through and call clear on everything
+        self.recent_set.clear();
+        self.recent_evicted.clear();
+        self.frequent_set.clear();
+        self.frequent_evicted.clear();
+    }
+
     pub fn len(&self) -> usize {
         self.recent_set.len() + self.frequent_set.len()
     }
