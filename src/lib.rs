@@ -1,5 +1,6 @@
 use std::borrow::Borrow;
 use std::hash::Hash;
+use std::iter::Chain;
 use xlru_cache::LruCache;
 
 pub struct ArcCache<K, V>
@@ -16,6 +17,15 @@ where
     evicted: u64,
     removed: u64,
 }
+
+/// An iterator over all items in the cache. Iterates over frequently-used items
+/// followed by recently-used items. Within each of these groups, the iterator
+/// yields less recently used items first.
+pub struct ArcCacheIterator<'a, K, V>(
+    Chain<xlru_cache::Iter<'a, K, V>, xlru_cache::Iter<'a, K, V>>,
+)
+where
+    K: Eq + Hash;
 
 impl<K, V> ArcCache<K, V>
 where
@@ -198,6 +208,29 @@ where
     }
 }
 
+impl<'a, K, V> IntoIterator for &'a ArcCache<K, V>
+where
+    K: Eq + Hash,
+{
+    type Item = (&'a K, &'a V);
+    type IntoIter = ArcCacheIterator<'a, K, V>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        ArcCacheIterator(self.frequent_set.iter().chain(self.recent_set.iter()))
+    }
+}
+
+impl<'a, K, V> Iterator for ArcCacheIterator<'a, K, V>
+where
+    K: Eq + Hash,
+{
+    type Item = (&'a K, &'a V);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
+    }
+}
+
 #[test]
 fn test_arc() {
     let mut arc: ArcCache<&str, &str> = ArcCache::new(2).unwrap();
@@ -212,4 +245,9 @@ fn test_arc() {
     arc.insert("testkey", "testvalue");
     assert!(arc.get_mut(&"testkey").is_some());
     assert!(arc.get_mut(&"testkey-nx").is_none());
+
+    let mut it = arc.into_iter();
+    assert_eq!(it.next(), Some((&"testkey", &"testvalue")));
+    assert_eq!(it.next(), Some((&"testkey2", &"testvalue2")));
+    assert_eq!(it.next(), None);
 }
