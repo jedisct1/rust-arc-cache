@@ -177,6 +177,10 @@ where
         self.recent_set.len() + self.frequent_set.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn frequent_len(&self) -> usize {
         self.frequent_set.len()
     }
