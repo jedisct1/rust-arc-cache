@@ -32,7 +32,7 @@ where
     K: Eq + Hash,
 {
     pub fn new(capacity: usize) -> Result<ArcCache<K, V>, &'static str> {
-        if capacity <= 0 {
+        if capacity == 0 {
             return Err("Cache length cannot be zero");
         }
         let cache = ArcCache {
@@ -40,7 +40,7 @@ where
             recent_evicted: LruCache::new(capacity),
             frequent_set: LruCache::new(capacity),
             frequent_evicted: LruCache::new(capacity),
-            capacity: capacity,
+            capacity,
             p: 0,
             inserted: 0,
             evicted: 0,
@@ -169,10 +169,8 @@ where
             if let Some((old_key, _)) = self.recent_set.remove_lru() {
                 self.recent_evicted.insert(old_key, ());
             }
-        } else {
-            if let Some((old_key, _)) = self.frequent_set.remove_lru() {
-                self.frequent_evicted.insert(old_key, ());
-            }
+        } else if let Some((old_key, _)) = self.frequent_set.remove_lru() {
+            self.frequent_evicted.insert(old_key, ());
         }
     }
 
@@ -185,6 +183,10 @@ where
 
     pub fn len(&self) -> usize {
         self.recent_set.len() + self.frequent_set.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     pub fn frequent_len(&self) -> usize {
