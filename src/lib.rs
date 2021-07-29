@@ -138,18 +138,18 @@ where
     where
         K: Clone + Hash + Eq,
     {
-        if let Some(value) = self.recent_set.remove(&key) {
+        if let Some(value) = self.recent_set.remove(key) {
             self.frequent_set.insert((*key).clone(), value);
         }
         self.frequent_set.get_mut(key)
     }
 
     pub fn remove(&mut self, key: &K) -> Option<V> {
-        let removed_frequent = self.frequent_set.remove(&key);
-        let removed_recent = self.recent_set.remove(&key);
+        let removed_frequent = self.frequent_set.remove(key);
+        let removed_recent = self.recent_set.remove(key);
 
-        self.frequent_evicted.remove(&key);
-        self.recent_evicted.remove(&key);
+        self.frequent_evicted.remove(key);
+        self.recent_evicted.remove(key);
 
         match removed_frequent.or(removed_recent) {
             Some(value) => {
