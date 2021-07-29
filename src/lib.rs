@@ -159,10 +159,8 @@ where
             if let Some((old_key, _)) = self.recent_set.remove_lru() {
                 self.recent_evicted.insert(old_key, ());
             }
-        } else {
-            if let Some((old_key, _)) = self.frequent_set.remove_lru() {
-                self.frequent_evicted.insert(old_key, ());
-            }
+        } else if let Some((old_key, _)) = self.frequent_set.remove_lru() {
+            self.frequent_evicted.insert(old_key, ());
         }
     }
 
