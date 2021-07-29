@@ -30,7 +30,7 @@ where
             recent_evicted: LruCache::new(capacity),
             frequent_set: LruCache::new(capacity),
             frequent_evicted: LruCache::new(capacity),
-            capacity: capacity,
+            capacity,
             p: 0,
             inserted: 0,
             evicted: 0,
