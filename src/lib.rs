@@ -22,7 +22,7 @@ where
     K: Eq + Hash,
 {
     pub fn new(capacity: usize) -> Result<ArcCache<K, V>, &'static str> {
-        if capacity <= 0 {
+        if capacity == 0 {
             return Err("Cache length cannot be zero");
         }
         let cache = ArcCache {
