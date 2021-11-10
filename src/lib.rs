@@ -1,16 +1,18 @@
 use std::borrow::Borrow;
-use std::hash::Hash;
+use std::collections::hash_map::RandomState;
+use std::hash::{BuildHasher, Hash};
 use std::iter::Chain;
 use xlru_cache::LruCache;
 
-pub struct ArcCache<K, V>
+pub struct ArcCache<K, V, S = RandomState>
 where
     K: Eq + Hash,
+    S: BuildHasher,
 {
-    recent_set: LruCache<K, V>,
-    recent_evicted: LruCache<K, ()>,
-    frequent_set: LruCache<K, V>,
-    frequent_evicted: LruCache<K, ()>,
+    recent_set: LruCache<K, V, S>,
+    recent_evicted: LruCache<K, (), S>,
+    frequent_set: LruCache<K, V, S>,
+    frequent_evicted: LruCache<K, (), S>,
     capacity: usize,
     p: usize,
     inserted: u64,
@@ -31,7 +33,7 @@ impl<K, V> ArcCache<K, V>
 where
     K: Eq + Hash,
 {
-    pub fn new(capacity: usize) -> Result<ArcCache<K, V>, &'static str> {
+    pub fn new(capacity: usize) -> Result<Self, &'static str> {
         if capacity == 0 {
             return Err("Cache length cannot be zero");
         }
@@ -40,6 +42,34 @@ where
             recent_evicted: LruCache::new(capacity),
             frequent_set: LruCache::new(capacity),
             frequent_evicted: LruCache::new(capacity),
+            capacity,
+            p: 0,
+            inserted: 0,
+            evicted: 0,
+            removed: 0,
+        };
+        Ok(cache)
+    }
+}
+
+impl<K, V, S> ArcCache<K, V, S>
+where
+    K: Eq + Hash,
+    S: BuildHasher,
+{
+    /// Creates an empty cache that can hold at most `capacity` items with the given hash builder.
+    pub fn with_hasher(capacity: usize, hash_builder: S) -> Result<Self, &'static str>
+    where
+        S: Clone,
+    {
+        if capacity == 0 {
+            return Err("Cache length cannot be zero");
+        }
+        let cache = ArcCache {
+            recent_set: LruCache::with_hasher(capacity, hash_builder.clone()),
+            recent_evicted: LruCache::with_hasher(capacity, hash_builder.clone()),
+            frequent_set: LruCache::with_hasher(capacity, hash_builder.clone()),
+            frequent_evicted: LruCache::with_hasher(capacity, hash_builder),
             capacity,
             p: 0,
             inserted: 0,
@@ -210,9 +240,10 @@ where
     }
 }
 
-impl<'a, K, V> IntoIterator for &'a ArcCache<K, V>
+impl<'a, K, V, S> IntoIterator for &'a ArcCache<K, V, S>
 where
     K: Eq + Hash,
+    S: BuildHasher,
 {
     type Item = (&'a K, &'a V);
     type IntoIter = ArcCacheIterator<'a, K, V>;
@@ -251,5 +282,30 @@ fn test_arc() {
     let mut it = arc.into_iter();
     assert_eq!(it.next(), Some((&"testkey", &"testvalue")));
     assert_eq!(it.next(), Some((&"testkey2", &"testvalue2")));
+    assert_eq!(it.next(), None);
+}
+
+#[test]
+fn test_custom_hasher() {
+    use nohash_hasher::NoHashHasher;
+    use std::hash::BuildHasherDefault;
+
+    let mut arc: ArcCache<u32, &str, BuildHasherDefault<NoHashHasher<u8>>> =
+        ArcCache::with_hasher(2, BuildHasherDefault::default()).unwrap();
+    arc.insert(1, "testvalue");
+    assert!(arc.contains_key(&1));
+    arc.insert(2, "testvalue2");
+    assert!(arc.contains_key(&2));
+    arc.insert(3, "testvalue3");
+    assert!(arc.contains_key(&3));
+    assert!(arc.contains_key(&2));
+    assert!(!arc.contains_key(&1));
+    arc.insert(1, "testvalue");
+    assert!(arc.get_mut(&1).is_some());
+    assert!(arc.get_mut(&666).is_none());
+
+    let mut it = arc.into_iter();
+    assert_eq!(it.next(), Some((&1, &"testvalue")));
+    assert_eq!(it.next(), Some((&2, &"testvalue2")));
     assert_eq!(it.next(), None);
 }
