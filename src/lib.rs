@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 use std::borrow::Borrow;
 use std::collections::hash_map::RandomState;
 use std::hash::{BuildHasher, Hash};
