@@ -16,5 +16,4 @@ xlru-cache = "0.1"
 nohash-hasher = "0.2"
 
 [badges]
-travis-ci = { repository = "jedisct1/rust-arc-cache" }
 appveyor  = { repository = "jedisct1/rust-arc-cache" }
