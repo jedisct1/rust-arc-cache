@@ -1,7 +1,7 @@
 [package]
 authors = ["Frank Denis <github@pureftpd.org>"]
-description = "An Adaptative Replacement Cache for Rust."
-keywords = ["data-structures"]
+description = "Adaptive Replacement Cache (ARC) with automatic eviction based on access frequency and recency"
+keywords = ["cache", "caching", "arc", "eviction", "replacement"]
 license = "MIT/Apache-2.0"
 name = "arc-cache"
 repository = "https://github.com/jedisct1/rust-arc-cache"
