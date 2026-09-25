@@ -5,7 +5,7 @@ keywords = ["cache", "caching", "arc", "eviction", "replacement"]
 license = "MIT/Apache-2.0"
 name = "arc-cache"
 repository = "https://github.com/jedisct1/rust-arc-cache"
-version = "0.2.6"
+version = "0.2.7"
 categories = ["algorithms", "caching", "memory-management"]
 edition = "2018"
 
